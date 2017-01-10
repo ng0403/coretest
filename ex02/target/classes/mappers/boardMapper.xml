@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.zerock.mapper.BoardMapper">
+
+ <insert id="create">
+ insert into tbl_board (bno, title, content, writer) 
+ values(seq_board.nextval, #{title},#{content}, #{writer})
+ </insert>
+
+ <select id="read" resultType="org.zerock.domain.BoardVO">
+ select 
+   bno, title, content, writer, regdate, viewcnt 
+ from 
+   tbl_board 
+ where bno = #{bno}
+ </select>
+
+ <update id="update">
+ update tbl_board set title =#{title}, content =#{content} 
+ where bno = #{bno}
+ </update>
+
+ <delete id="delete">
+ delete from tbl_board where bno = #{bno}
+ </delete>
+
+ <select id="listAll" resultType="org.zerock.domain.BoardVO">
+ <![CDATA[
+ select 
+   bno, title, content, writer, regdate, viewcnt 
+ from 
+   tbl_board 
+ where bno > 0 
+ order by bno desc, regdate desc
+ ]]>  
+ </select>
+ 
+ <select id="listPage"  resultType="org.zerock.domain.BoardVO">
+ <![CDATA[
+select
+  bno, title, content, writer, viewcnt, regdate
+from
+  (
+  select
+    /*+INDEX_DESC(tbl_board, pk_board)*/
+    rownum rn, bno, title, content, writer, viewcnt, regdate
+  from tbl_board
+  where rownum <= #{page} * #{perPageNum}
+  and bno > 0
+  )
+where rn > (#{page} -1) * #{perPageNum}
+ ]]>
+</select>
+
+  <select id="listCriteria" resultType="BoardVO">
+ <![CDATA[
+select
+*
+from
+  (
+  select
+  /*+INDEX_DESC(tbl_board pk_board) */
+  rownum rn, bno, title, content, writer, regdate, viewcnt
+  from tbl_board
+  where bno > 0
+  and rownum <= 40 )
+where rn > 20;
+
+ ]]>  
+ </select>
+
+
+
+ <select id="countPaging" resultType="int">
+ <![CDATA[
+ select 
+   count(bno) 
+ from 
+   tbl_board 
+ where 
+   bno > 0 
+ ]]>
+ </select>
+
+
+
+<sql id="search">
+ <if test="searchType != null" >
+   <if test="searchType == 't'.toString()">
+     and title like '%'|| #{keyword}||'%'
+   </if>
+   <if test="searchType == 'c'.toString()">
+     and content like '%'|| #{keyword}||'%'
+   </if>
+   <if test="searchType == 'w'.toString()">
+     and writer like '%'|| #{keyword}||'%'
+   </if>    
+   <if test="searchType == 'tc'.toString()">
+     and ( title like '%'|| #{keyword}||'%' OR content like '%'|| #{keyword}||'%')
+   </if>       
+   <if test="searchType == 'cw'.toString()">
+     and ( content like '%'|| #{keyword}||'%' OR writer like '%'|| #{keyword}||'%')
+   </if>       
+   <if test="searchType == 'tcw'.toString()">
+     and (   title like '%'|| #{keyword}||'%'
+           OR
+             content like '%'|| #{keyword}||'%'
+           OR
+             writer like '%'|| #{keyword}||'%')
+   </if>             
+ </if> 
+</sql>
+
+<select id="listSearch"  resultType="org.zerock.domain.BoardVO">
+ <![CDATA[
+select
+  bno, title, content, writer, viewcnt, regdate
+from
+  (
+  select
+    /*+INDEX_DESC(tbl_board, pk_board)*/
+    rownum rn, bno, title, content, writer, viewcnt, regdate
+  from tbl_board
+  where 1=1
+]]>
+  <include refid="search"></include>
+<![CDATA[ 
+  and rownum <= #{page} * #{perPageNum}
+  and bno > 0
+  )
+where rn > (#{page} -1) * #{perPageNum}
+ ]]>
+</select>
+
+<select id="listSearchCount"  resultType="int">
+ <![CDATA[
+select
+  count(bno)
+from
+  tbl_board
+where 1=1
+]]>
+  <include refid="search"></include>
+<![CDATA[
+and bno > 0
+ ]]>
+</select>
+  
+</mapper>

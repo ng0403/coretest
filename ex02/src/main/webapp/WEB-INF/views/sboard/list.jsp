@@ -16,7 +16,7 @@
 			<!-- general form elements -->
 			<div class='box'>
 				<div class="box-header with-border">
-					<h3 class="box-title">Board List112</h3>
+					<h3 class="box-title">Board List114</h3>
 				</div>
 
 
